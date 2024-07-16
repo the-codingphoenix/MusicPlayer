@@ -27,14 +27,19 @@ const songs = [
         artist: 'Nathaniel Bassey',
     },
     {
-        name: 'i-love-You',
-        displayName: 'Lord, I Love You',
-        artist: 'Adrian Cunningham',
+        name: 'i-believe',
+        displayName: 'I Believe',
+        artist: 'Jonathan Nelson',
     },
     {
         name: 'believe-for-it',
         displayName: 'Believe For It',
         artist: 'Cece Winans',
+    },
+    {
+        name: 'hard-road',
+        displayName: 'Hard Road To Travel',
+        artist: 'Sebastian Braham'
     }
 ];
 
@@ -87,14 +92,62 @@ function nextSong() {
     playSong();
 }
 
-//On Load - Select First Song
-loadSong(songs[songIndex]);
+// Update progress bar and time if isPlaying is true
+function updateProgressBar(e) {
+    if (isPlaying) {
+        const { duration, currentTime } = e.srcElement;
+        // update progress bar width
+        if (duration) {
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+
+            // Calculate and display the current time
+            const currentMinutes = Math.floor(currentTime / 60);
+            const currentSeconds = Math.floor(currentTime % 60);
+            currentTimeElement.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds}`;
+        }
+    }
+}
+
+
+// Display duration of the audio file
+function displayDuration() {
+    const duration = music.duration;
+    const durationMinutes = Math.floor(duration / 60);
+    const durationSeconds = Math.floor(duration % 60);
+    durationElement.textContent = `${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+}
+
+// Set progress bar based on click
+function setProgress(e) {
+    const width = this.clientWidth;
+    const clickX = e.offsetX;
+    const duration = music.duration;
+    if (duration) {
+        music.currentTime = (clickX / width) * duration;
+    }
+}
 
 //Event Listeners
 previousBtn.addEventListener('click', previousSong);
 nextBtn.addEventListener('click', nextSong);
+music.addEventListener('ended', nextSong);
+music.addEventListener('timeupdate', updateProgressBar);
+music.addEventListener('loadedmetadata', displayDuration);
+progressContainer.addEventListener('click', setProgress);
 
 // Event listener for play/pause button
 playBtn.addEventListener('click', togglePlayPause);
 
-// update progress bar & time
+// Set initial duration if metadata is already loaded
+if (music.readyState >= 1) {
+    displayDuration();
+}
+
+// Initially set the paused class if the audio is not playing
+if (music.paused) {
+    progressContainer.classList.add('paused');
+}
+
+//On Load - Select First Song
+loadSong(songs[songIndex]);
